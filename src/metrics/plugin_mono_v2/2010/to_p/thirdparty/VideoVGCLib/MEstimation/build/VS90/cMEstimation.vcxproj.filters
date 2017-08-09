@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="MEParams">
+      <UniqueIdentifier>{a387646a-b3f2-4608-8a70-737c8cd24b1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AdditionalTypes">
+      <UniqueIdentifier>{b437971b-3ab1-4539-9cf0-85621e418e6e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\cMEstimation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cProposedME.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cSimpleMEAlgs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\MEParams\cAdvancedMEParams.c">
+      <Filter>MEParams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\MEParams\cDevMEParams.c">
+      <Filter>MEParams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\MEParams\cMEParams.c">
+      <Filter>MEParams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cMV.c">
+      <Filter>AdditionalTypes</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\cGetError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cMEStaff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cMEstimation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cProposedME.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cSimpleMEAlgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MEParams\cAdvancedMEParams.h">
+      <Filter>MEParams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MEParams\cDevMEParams.h">
+      <Filter>MEParams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MEParams\cMEParams.h">
+      <Filter>MEParams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\cMV.h">
+      <Filter>AdditionalTypes</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
