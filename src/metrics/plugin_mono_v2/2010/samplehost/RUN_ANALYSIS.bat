@@ -1,1 +1,0 @@
-samplehost -b 1 -i source_3d.avs source_2d.avs -s 1 -m mono_scale -o out
