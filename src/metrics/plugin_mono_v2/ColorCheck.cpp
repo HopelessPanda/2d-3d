@@ -12,6 +12,7 @@ using namespace std;
 using namespace cv;
 
 // Compute histogram and CDF for an image with mask
+// -----
 void do1ChnHist(const cv::Mat image, double* hist, double* cdf)
 {
     //cout << "A";
