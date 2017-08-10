@@ -73,6 +73,7 @@ class CMonoPlugin: virtual public CCustomMetric {
         double GetCoef(BYTE *image, double alpha, int ind, int center, int direction, LOG log, int framenum);
         int GetCenter(BYTE *image, int ind, double alpha, int direction, LOG log, int framenum);
         int Brightness_Color_check(PNG_Image*, PNG_Image*);
+        bool FitBrightness(PNG_Image mono, PNG_Image left);
         void Segmentize(BYTE* mask, double alpha, int id);
         void FindDeleted(double alpha, int framenumber);
         
