@@ -26,7 +26,7 @@ bool comp_double(pair<double, double> a, pair<double, double> b);
 
 int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data_manager, IResultsServer* results_server, IVisualizationServer* vis_server)
 {
-    ME_app = true;
+    ME_app = false;
     //load new frame
     UpdateSource(data_manager);
     m_analyser.o_notrans = &m_Mono;
@@ -74,12 +74,14 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
         return 0;
     }
 
+	del_square = FindDeleted(alpha, framenum);
+
     //segmentize the image                                                                   
     log.print("starting segments");
     BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
     BYTE *seg_map_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
     m_analyser.L_TO_R.GetDepthMap(depth_LtoR, 0);
-    log.vis_segments(depth_LtoR, m_height, m_width, "depth.png");
+    //log.vis_segments(depth_LtoR, m_height, m_width, "depth.png");
     int count_seg = seg_engine.GetSegmentationMap(depth_LtoR, seg_map_LtoR);
     if (count_seg < 1) {
         log.print("no objects detected", 1);
@@ -304,10 +306,9 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
         bckg_coefficient = bckg.front().coef_x;
     }
 
-    //FindDeleted(alpha, framenum);
     // чем меньше тем статичнее, тем больше должен быть процент
-    double k = 0.4 - ((double)me_prev / 100);
-    if (k < 0) k = 0;
+    //double k = 0.4 - ((double)me_prev / 100);
+    //if (k < 0) k = 0;
     //if (me_prev != 0)
     //    obj_coefficient = obj_coefficient * (1 - k) + prev_coef * k;
 
