@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 char *plugin_metric_names[] = { "mono_difference", "mono_position", "mono_scale", "mono_confidence",
-                                      "mono_brightness", "mono_flat", "object_coef", "bckg_coef", "coef_conf",
+                                      "mono_brightness", "mono_flat", "object_coef", "del_square", "coef_conf",
                                       "mono_me" };
 char *plugin_visualization_names[] = { "mono" };
 CMetricProperties plugin_properties = {
@@ -197,6 +197,9 @@ void CMonoPlugin::BlankResult(int framenum, IResultsServer* results_server)
     results_server->SaveResult(metric_ids[4], framenum, 0.0f);
     results_server->SaveResult(metric_ids[5], framenum, -1.0f);
     results_server->SaveResult(metric_ids[6], framenum, 99999);
+	results_server->SaveResult(metric_ids[7], framenum, -1.0f);
+	results_server->SaveResult(metric_ids[8], framenum, -1.0f);
+	results_server->SaveResult(metric_ids[9], framenum, -1.0f);
 }
 
 //save true results
@@ -208,6 +211,10 @@ void CMonoPlugin::PostResult(int framenum, IResultsServer* results_server)
     results_server->SaveResult(metric_ids[3], framenum, float(m_confidence));
     results_server->SaveResult(metric_ids[4], framenum, float(m_brightness));
     results_server->SaveResult(metric_ids[5], framenum, float(m_flat));
+    results_server->SaveResult(metric_ids[6], framenum, float(obj_coefficient));
+    results_server->SaveResult(metric_ids[7], framenum, float(del_square));
+    results_server->SaveResult(metric_ids[8], framenum, float(coef_conf));
+    results_server->SaveResult(metric_ids[9], framenum, float(me_prev));
 }
 
 //check confidence.. too low -> don't waste our time, skip further measure

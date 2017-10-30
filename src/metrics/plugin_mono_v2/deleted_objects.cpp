@@ -20,7 +20,7 @@ struct object {
     int index;
     vector<pair<int, int>> obj_coords;
     vector<pair<int, int>> edge_coords;
-    long area;
+    double area;
 };
 
 bool check_error(BYTE *error_map, int index)
@@ -69,7 +69,11 @@ bool comp_ver(pair<int, int> a, pair<int, int> b)
     return a.first < b.first;
 }
 
-void CMonoPlugin::FindDeleted(double alpha, int framenumber)
+bool comp_area(object a, object b) {
+	return a.area < b.area;
+}
+
+double CMonoPlugin::FindDeleted(double alpha, int framenumber)
 {
     LOG log(false);
     log.vis_grey_image(m_Mono.GetData(), m_height, m_width, "mono.png");
@@ -104,7 +108,7 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
             map_error_NtoL[index] = abs(me_NtoL[index].error) * coef; // for vis
         }
     }
-    log.vis_grey_image(map_error_NtoL, m_height, m_width, "error_in_NtoL.png");
+    //log.vis_grey_image(map_error_NtoL, m_height, m_width, "error_in_NtoL.png");
 
     int* map_checked = (int*)malloc(m_height*m_width * sizeof(int));
     for (int i = 0; i < m_height*m_width; i++) map_checked[i] = 0;
@@ -163,12 +167,12 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
         }
     }
     log.print("finished search, total objects", all.size());
-    if (all.size() == 0) return;
+    if (all.size() == 0) return 0;
 
     //check depth of neighbouring pixels
     BYTE *depth_NtoL = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
     m_analyser.L_TO_N.GetDepthMap(depth_NtoL, 1);
-    log.vis_grey_image(depth_NtoL, m_height, m_width, "_depth.png", framenumber);
+    //log.vis_grey_image(depth_NtoL, m_height, m_width, "_depth.png", framenumber);
 
     for (int i = 0; i < all.size(); i++) {
         vector<int> depths;
@@ -198,7 +202,7 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
         }
 
     }
-    if (all.size() == 0) return;
+    if (all.size() == 0) return 0;
 
     // check color, if differs -> deleted
     /*
@@ -248,15 +252,15 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
         }
     }
     */
-    if (all.size() == 0) return;
+    if (all.size() == 0) return 0;
 
     // find coordinates of found del object   
     if (all.size() > 0) {
-        fstream fr, fr_coord;
-        fr.open("d_frame order.txt", std::ios_base::app);
-        fr_coord.open("d_coordinates in frame.txt", std::ios_base::app);
+        //fstream fr, fr_coord;
+        //fr.open("d_frame order.txt", std::ios_base::app);
+        //fr_coord.open("d_coordinates in frame and area.txt", std::ios_base::app);
 
-        fr << framenumber * 10 + 80000 << endl;
+        //fr << framenumber<< endl;
 
         for (int i = 0; i < all.size(); i++) {
             all[i].obj_coords;
@@ -266,11 +270,15 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
             sort(all[i].edge_coords.begin(), all[i].edge_coords.end(), comp_ver);
             int y_max = all[i].edge_coords.front().first;
             int y_min = all[i].edge_coords.back().first;
-            fr_coord << framenumber * 10 + 80000 << ' ' << x_min << ' ' << x_max << ' ' << y_min << ' ' << y_max << endl;
+            //fr_coord << framenumber << ' ' << x_min << ' ' << x_max << ' ' << y_min << ' ' << y_max << endl;
+			all[i].area = (x_max - x_min)*(y_max - y_min) / (double)(m_width*m_height);
         }
+		sort(all.begin(), all.end(), comp_area);
+		del_square = all.front().area;
+		//fr_coord << del_square << endl;
 
-        fr.close();
-        fr_coord.close();
+        //fr.close();
+        //fr_coord.close();
     }
 
     // make changemap
@@ -288,4 +296,5 @@ void CMonoPlugin::FindDeleted(double alpha, int framenumber)
     free(map_checked);
     free(map_x_NtoL);
     free(map_y);
+	return del_square;
 }

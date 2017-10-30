@@ -57,8 +57,8 @@ class CMonoPlugin: virtual public CCustomMetric {
         me_data d_right;
 
         cv::Mat transform;
-        double m_confidence, m_difference, m_brightness, m_position, m_z, m_flat, me_prev;
-		double obj_coefficient, bckg_coefficient, coef_conf, obj_area;
+        double m_confidence, m_difference, m_brightness, m_position, m_z, m_flat, me_prev, del_square;
+        double obj_coefficient, bckg_coefficient, coef_conf;
         double prev_coef;
         string obj_res, bckg_res;
         StereoAnalyser m_analyser;
@@ -75,7 +75,7 @@ class CMonoPlugin: virtual public CCustomMetric {
         int Brightness_Color_check(PNG_Image*, PNG_Image*);
         bool FitBrightness(PNG_Image mono, PNG_Image left);
         void Segmentize(BYTE* mask, double alpha, int id);
-        void FindDeleted(double alpha, int framenumber);
+        double FindDeleted(double alpha, int framenumber);
         
         
         // not used 
