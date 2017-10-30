@@ -208,10 +208,6 @@ void CMonoPlugin::PostResult(int framenum, IResultsServer* results_server)
     results_server->SaveResult(metric_ids[3], framenum, float(m_confidence));
     results_server->SaveResult(metric_ids[4], framenum, float(m_brightness));
     results_server->SaveResult(metric_ids[5], framenum, float(m_flat));
-    results_server->SaveResult(metric_ids[6], framenum, float(obj_coefficient));
-    results_server->SaveResult(metric_ids[7], framenum, float(bckg_coefficient));
-    results_server->SaveResult(metric_ids[8], framenum, float(coef_conf));
-    results_server->SaveResult(metric_ids[9], framenum, float(me_prev));
 }
 
 //check confidence.. too low -> don't waste our time, skip further measure

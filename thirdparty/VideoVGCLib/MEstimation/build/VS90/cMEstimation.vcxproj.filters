@@ -38,6 +38,21 @@
     <ClCompile Include="..\..\cMV.c">
       <Filter>AdditionalTypes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\disparity_estimator\basic_estimator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\disparity_estimator\ConfidenceEstimator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\disparity_estimator\DispersionEstimator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\disparity_estimator\MEWrapperBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\disparity_estimator\disparity_estimator_basic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cGetError.h">
@@ -67,5 +82,25 @@
     <ClInclude Include="..\..\cMV.h">
       <Filter>AdditionalTypes</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\disparity_estimator\ConfidenceEstimator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\disparity_estimator\disparity_estimator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\disparity_estimator\DispersionEstimator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\disparity_estimator\MEWrapperBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\disparity_estimator\disparity_estimator_basic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\disparity_estimator\CMakeLists.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

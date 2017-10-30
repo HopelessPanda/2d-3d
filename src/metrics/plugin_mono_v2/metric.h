@@ -58,7 +58,7 @@ class CMonoPlugin: virtual public CCustomMetric {
 
         cv::Mat transform;
         double m_confidence, m_difference, m_brightness, m_position, m_z, m_flat, me_prev;
-        double obj_coefficient, bckg_coefficient, coef_conf;
+		double obj_coefficient, bckg_coefficient, coef_conf, obj_area;
         double prev_coef;
         string obj_res, bckg_res;
         StereoAnalyser m_analyser;

@@ -10,7 +10,7 @@ void LOG::print(string txt, int mode)
     }
 }
 
-void LOG::vis_segments(BYTE * segmentation_map, int height, int width, string name)
+void LOG::vis_segments(BYTE * segmentation_map, int height, int width, string name, int framenum)
 {
     if (true) {
         BYTE *tmp = (BYTE*)malloc(height*width*sizeof(BYTE));
@@ -30,7 +30,9 @@ void LOG::vis_segments(BYTE * segmentation_map, int height, int width, string na
                 tmp[i*width + j] += newMin;
             }
         }
-        PNG_Image::SaveArrayToPNG(seg_map.data, width, height, name.c_str());
+		stringstream sss;
+		sss << framenum << "_" << name;
+        PNG_Image::SaveArrayToPNG(seg_map.data, width, height, sss.str().c_str());
         free(tmp);
    }
 }

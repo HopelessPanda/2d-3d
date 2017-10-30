@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <utility>
 #include "log.h"
+#include "VideoVGCLib\disparity_estimator\disparity_estimator.h"
 
 #define CONF_THSH 0.2
 #define CNTH 5         // threshold for center difference
@@ -25,12 +26,62 @@ bool comp_coef(Object a, Object b) {
 bool comp_double(pair<double, double> a, pair<double, double> b);
 
 int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data_manager, IResultsServer* results_server, IVisualizationServer* vis_server)
-{
-    ME_app = true;
+{	
+	//load new frame
+	UpdateSource(data_manager);
+
+	//transform mono according to prev results
+	bool wasdone = 0; 
+	TransformMono(2); //apply old params only
+	std::cout << "\n" << wasdone << " - transform with old params only\n";
+
+										// try to analyse
+	t_Mono.ConvertToType(YUV_P);
+	m_analyser.Analyse(); // <- finds existing difference and scale
+
+
+	DisparityEstimator* disp_estimator = CreateBasicEstimator(m_width, m_height);
+
+	//bad result? calculate w/o transform
+	// Check() <- still zoom or bad confidence
+
+	if (!Check() && wasdone)
+	{
+		t_Mono = m_Mono;
+		t_Mono.ConvertToType(YUV_P);
+		m_analyser.Analyse();
+		wasdone = TransformMono(0); //get new params
+		cout << wasdone << " - transformed with new params\n";
+		t_Mono.SaveToPNG("t_Mono_new_params.png");
+	}
+	else {
+		wasdone = TransformMono(1); //with using old params
+		cout << wasdone << " - trasformed with old params\n";
+		t_Mono.SaveToPNG("t_Mono_refined_params.png");
+	}
+
+	if (!MeasureConf())
+	{
+		m_position = -1;
+		m_flat = -1;
+		m_difference = 0;
+		m_brightness = 0;
+		cout << "bad confindence\n";
+	}
+	else
+	{
+		MultiPosAnalysis();
+		cout << "multipos analysis\n";
+	}
+
+	PostResult(framenum, results_server);
+	return 0;
+
+	ME_app = false;
     //load new frame
     UpdateSource(data_manager);
     m_analyser.o_notrans = &m_Mono;
-    LOG log(true, 1, false);
+    LOG log(true, 2, true);
     log.print("\n", 1);
     //only for me
     if (ME_app) {
@@ -79,7 +130,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
     BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
     BYTE *seg_map_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
     m_analyser.L_TO_R.GetDepthMap(depth_LtoR, 0);
-    log.vis_segments(depth_LtoR, m_height, m_width, "depth.png");
+    log.vis_grey_image(depth_LtoR, m_height, m_width, "depth.png", framenum);
     int count_seg = seg_engine.GetSegmentationMap(depth_LtoR, seg_map_LtoR);
     if (count_seg < 1) {
         log.print("no objects detected", 1);
@@ -90,10 +141,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 
 
     /*visualize segments*/ if (log.visualization) {
-        stringstream sss;
-        sss << framenum;
-        string name = "obj/" + sss.str() + "_segments.png";
-        log.vis_segments(seg_map_LtoR, m_height, m_width, name);
+        log.vis_segments(seg_map_LtoR, m_height, m_width, "segments.png", framenum);
     }
 
     //calculate area and depth of each segment
@@ -298,6 +346,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
     if (obj.size() > 0) {
         sort(obj.begin(), obj.end(), comp_coef);
         obj_coefficient = obj.front().coef_x;
+		obj_area = obj.front().area;
     }
     if (bckg.size() > 0) {
         sort(bckg.begin(), bckg.end(), comp_coef);
