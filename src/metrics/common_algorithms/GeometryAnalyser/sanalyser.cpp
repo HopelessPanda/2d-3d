@@ -59,9 +59,9 @@ StereoAnalyser::StereoAnalyser()
 #include <iostream>
 void StereoAnalyser::MEonlyMono()
 {
-    prev_mono->ConvertToType(YUV_P);
-    o_notrans->ConvertToType(YUV_P);    
-    M_TO_PREV.Load(*o_notrans, *prev_mono);
+    prev_left->ConvertToType(YUV_P);
+	o_left->ConvertToType(YUV_P);
+    M_TO_PREV.Load(*o_left, *prev_left);
     M_TO_PREV.Process();    
     M_TO_PREV.CalcQuality();
     M_TO_PREV.FilterPairs();

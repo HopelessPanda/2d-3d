@@ -114,7 +114,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../../thirdparty/opencv/include;$(SolutionDir)..\..\..\thirdparty;$(SolutionDir)..\..;$(SolutionDir)\StereoAnalyser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../../thirdparty/opencv/include;$(SolutionDir)..\..\..\thirdparty;$(SolutionDir)..\..;$(SolutionDir)\StereoAnalyser;%(AdditionalIncludeDirectories);c:\Users\polliksa\Source\Repos\2d-3d\thirdparty\VideoVGCLib\depth_from_me\;c:\Users\polliksa\Source\Repos\2d-3d\src\metrics\plugin_mono_v2\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;plugin_geometry_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -193,6 +193,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.hpp" />
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.hpp" />
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\mv.hpp" />
     <ClInclude Include="deep_analysis.h" />
     <ClInclude Include="Depth_map_segmentation.h" />
     <ClInclude Include="im_vis.h" />
@@ -212,6 +215,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.cpp" />
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.cpp" />
     <ClCompile Include="brightness.cpp" />
     <ClCompile Include="ColorCheck.cpp" />
     <ClCompile Include="deep_analysis.cpp" />

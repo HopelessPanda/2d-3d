@@ -6,6 +6,7 @@
 #include "Depth_map_segmentation.h"
 #include <vector>
 #include "log.h"
+#include "depth_estimator.hpp"
 
 #define TR_C 0.01*255
 
@@ -49,7 +50,7 @@ class CMonoPlugin: virtual public CCustomMetric {
         void MultiPosAnalysis();
 
         PNG_Image m_Left, m_Right, m_Mono, m_Mono_BGR, t_Mono, m_Input;
-        PNG_Image prev_Mono;
+        PNG_Image prev_Left;
         int m_width, m_height;
         bool ME_app;
 
@@ -57,12 +58,13 @@ class CMonoPlugin: virtual public CCustomMetric {
         me_data d_right;
 
         cv::Mat transform;
-        double m_confidence, m_difference, m_brightness, m_position, m_z, m_flat, me_prev, del_square;
-        double obj_coefficient, bckg_coefficient, coef_conf;
+        double m_confidence, m_difference, m_brightness, m_position, m_z, m_flat, me_prev;
+        double obj_coefficient, bckg_coefficient, coef_conf, del_square;
         double prev_coef;
         string obj_res, bckg_res;
         StereoAnalyser m_analyser;
         DepthSegmentationEngine seg_engine;
+		DepthEstimator* depth_estimator;
         
     public:
         ~CMonoPlugin();
@@ -76,6 +78,8 @@ class CMonoPlugin: virtual public CCustomMetric {
         bool FitBrightness(PNG_Image mono, PNG_Image left);
         void Segmentize(BYTE* mask, double alpha, int id);
         double FindDeleted(double alpha, int framenumber);
+		bool color_check(PNG_Image * a, PNG_Image * b, const int i, const int j);
+		double FindDeletedTwoVersions(BYTE* depth_map, int framenumber);
         
         
         // not used 

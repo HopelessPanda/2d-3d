@@ -30,7 +30,7 @@ public:
     PNG_Image *o_left;    // ?
     PNG_Image *o_right;	  // ?
     PNG_Image *o_mono;
-    PNG_Image *prev_mono;
+    PNG_Image *prev_left;
     PNG_Image *o_notrans;    
     BYTE* m_ssim;         // blank grey
     void TransformMono();

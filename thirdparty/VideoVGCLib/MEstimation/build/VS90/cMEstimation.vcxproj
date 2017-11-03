@@ -164,10 +164,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\disparity_estimator\basic_estimator.cpp" />
-    <ClCompile Include="..\..\..\disparity_estimator\ConfidenceEstimator.cpp" />
-    <ClCompile Include="..\..\..\disparity_estimator\disparity_estimator_basic.cpp" />
-    <ClCompile Include="..\..\..\disparity_estimator\DispersionEstimator.cpp" />
-    <ClCompile Include="..\..\..\disparity_estimator\MEWrapperBase.cpp" />
     <ClCompile Include="..\..\cMEstimation.c" />
     <ClCompile Include="..\..\cMV.c" />
     <ClCompile Include="..\..\cProposedME.c" />
@@ -177,11 +173,6 @@
     <ClCompile Include="..\..\MEParams\cMEParams.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\disparity_estimator\ConfidenceEstimator.h" />
-    <ClInclude Include="..\..\..\disparity_estimator\disparity_estimator.h" />
-    <ClInclude Include="..\..\..\disparity_estimator\disparity_estimator_basic.h" />
-    <ClInclude Include="..\..\..\disparity_estimator\DispersionEstimator.h" />
-    <ClInclude Include="..\..\..\disparity_estimator\MEWrapperBase.h" />
     <ClInclude Include="..\..\cGetError.h" />
     <ClInclude Include="..\..\cMEStaff.h" />
     <ClInclude Include="..\..\cMEstimation.h" />

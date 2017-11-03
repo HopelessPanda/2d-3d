@@ -32,6 +32,7 @@ CMetricProperties plugin_properties = {
 
 //constructor
 CMonoPlugin::CMonoPlugin() : CCustomMetric(plugin_properties, (char**)plugin_metric_names, (char**)plugin_visualization_names) {
+	depth_estimator = new DepthEstimator(960, 544, 0);
 }
 
 //this function used to convert found params into perspective transform matrix
@@ -96,7 +97,7 @@ void CMonoPlugin::UpdateSource(IDataServer* data)
 {
     if (ME_app) {
         ExtractRightView(data, m_Input.GetData());
-        prev_Mono = m_Mono;
+        //prev_Mono = m_Mono;
         m_Mono = m_Input;
         m_Mono.Crop(0, 0, m_w - m_width, 0);
         m_Mono_BGR = m_Mono;
@@ -108,16 +109,15 @@ void CMonoPlugin::UpdateSource(IDataServer* data)
             m_Mono_BGR.ConvertToType(BGR_I);
         }
     }
-
     ExtractLeftView(data, m_Input.GetData());
     //left view contains stacked left and right stereo views
+	prev_Left = m_Left;
     m_Left = m_Input;
     m_Left.Crop(0, 0, m_w - m_width, 0);
     m_Right = m_Input;
     m_Right.Crop(m_w - m_width, 0, 0, 0);
     ExtractRightView(data, m_Input.GetData());
     //right view has mono image only
-    prev_Mono = m_Mono;
     m_Mono = m_Input;
     m_Mono.Crop(0, 0, m_w - m_width, 0);
     m_Mono_BGR = m_Mono;
@@ -132,6 +132,8 @@ void CMonoPlugin::UpdateSource(IDataServer* data)
         m_Mono.ConvertToType(YUV_P);
 #pragma omp section
         m_Mono_BGR.ConvertToType(BGR_I);
+#pragma omp section
+		prev_Left.ConvertToType(YUV_P);
     }
 }
 

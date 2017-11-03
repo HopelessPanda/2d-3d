@@ -36,6 +36,15 @@
     <ClInclude Include="log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\mv.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="My Inspector Results\r004mi4\r004mi4.insp">
@@ -77,6 +86,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="plugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
