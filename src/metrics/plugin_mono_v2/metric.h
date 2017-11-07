@@ -77,10 +77,10 @@ class CMonoPlugin: virtual public CCustomMetric {
         int Brightness_Color_check(PNG_Image*, PNG_Image*);
         bool FitBrightness(PNG_Image mono, PNG_Image left);
         void Segmentize(BYTE* mask, double alpha, int id);
-        double FindDeleted(double alpha, int framenumber);
-		bool color_check(PNG_Image * a, PNG_Image * b, const int i, const int j);
-		double FindDeletedTwoVersions(BYTE* depth_map, int framenumber);
-        
+        double FindDeleted(double alpha, int framenum);
+		bool color_check(PNG_Image * a, PNG_Image * b, const int i, const int j, int x = 0);
+		double FindDeletedTwoVersions(BYTE* depth_map, int framenum);
+		void two_version_comparison(int framenum, IResultsServer* results_server);
         
         // not used 
         int CompareFramesLt(IResultsServer* results, int framenum1, int framenum2, int vis_id);

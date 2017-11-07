@@ -89,7 +89,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)../../../thirdparty/opencv/include;$(SolutionDir)..\..\..\thirdparty;$(SolutionDir)..\..;$(SolutionDir)\StereoAnalyser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../../thirdparty/opencv/include;$(SolutionDir)..\..\..\thirdparty;$(SolutionDir)..\..;$(SolutionDir)\StereoAnalyser;$(SolutionDir)../../../thirdparty/VideoVGCLib\depth_from_me\;$(SolutionDir)../../../src\metrics\plugin_mono_v2\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;plugin_geometry_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>

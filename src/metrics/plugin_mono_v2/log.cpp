@@ -10,29 +10,28 @@ void LOG::print(string txt, int mode)
     }
 }
 
-void LOG::vis_segments(BYTE * segmentation_map, int height, int width, string name, int framenum)
+void LOG::vis_normalized(BYTE * segmentation_map, int height, int width, string name, int framenum, double newMin, double newMax)
 {
-    if (true) {
+    if (visualization) {
         BYTE *tmp = (BYTE*)malloc(height*width*sizeof(BYTE));
+		double min = 10000, max = 0;
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 tmp[i*width + j] = segmentation_map[i*width + j];
+				if (tmp[i*width + j] < min) min = tmp[i*width + j];
+				if (tmp[i*width + j] > max) max = tmp[i*width + j];
             }
-        }
-        Mat seg_map(height, width, CV_8UC1, tmp);
-        double min, max;
-        double newMin = 50, newMax = 255;
-        Point minLoc, maxLoc;
-        minMaxLoc(seg_map, &min, &max, &minLoc, &maxLoc);
+        }        
+		double coef = (newMax - newMin) / (max - min);
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                tmp[i*width + j] *= (newMax - newMin) / (max - min);
+				tmp[i*width + j] *= coef;
                 tmp[i*width + j] += newMin;
             }
         }
 		stringstream sss;
 		sss << framenum << "_" << name;
-        PNG_Image::SaveArrayToPNG(seg_map.data, width, height, sss.str().c_str());
+        PNG_Image::SaveArrayToPNG(tmp, width, height, sss.str().c_str());
         free(tmp);
    }
 }
@@ -50,7 +49,7 @@ void LOG::print_byte_array(BYTE * arr, int height, int width, int mode)
 }
 
 
-void LOG::vis_grey_image(BYTE *data, int height, int width, string name, int framenum) // (full name).png | framenumber_(m|l|r|smth).png
+void LOG::vis_grey_image(BYTE *data, int height, int width, string name, int framenum) // (full name).png | framenum_(m|l|r|smth).png
 {
     if (visualization) {
         if (framenum == -1) {
@@ -59,7 +58,7 @@ void LOG::vis_grey_image(BYTE *data, int height, int width, string name, int fra
         else {
             stringstream sss;
             sss << framenum;
-            string cust_name = sss.str() + name;
+            string cust_name = sss.str() + '_' + name;
             PNG_Image::SaveArrayToPNG(data, width, height, cust_name.c_str());
         }
     }

@@ -30,6 +30,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 {
 	//load new frame
 	ME_app = false;
+	bool two_v = false;
 	UpdateSource(data_manager);
 
 	//transform mono according to prev results
@@ -37,71 +38,9 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	TransformMono(2); //apply old params only
 	std::cout << "\n" << wasdone << " - transform with old params only\n";
 
-
-	m_analyser.prev_left = &prev_Left;
-	m_analyser.MEonlyMono();
-
-	cMV* MtoPREV = m_analyser.GetME(5)->Field(0);
-	MV* mv = (MV*)malloc(m_height*m_width * sizeof(MV));
-	BYTE* x_me = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			mv[i*m_width + j].x = MtoPREV[i*m_width + j].x;
-			mv[i*m_width + j].y = MtoPREV[i*m_width + j].y;
-			mv[i*m_width + j].error = MtoPREV[i*m_width + j].error;
-			x_me[i*m_width + j] = mv[i*m_width + j].x;
-		}
-	}
-
-
-	/* Depth estimation
-	m_Left.ConvertToType(YUV_P);
-	m_Left.SaveToPNG("normal_Left.png");
-	uint8_t *Left_Y = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
-	int16_t *Left_U = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
-	int16_t *Left_V = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			Left_Y[i*m_width + j] = m_Left.y(j, i);
-			Left_U[i*m_width + j] = m_Left.u(j, i);
-			Left_V[i*m_width + j] = m_Left.v(j, i);
-		}
-	}
-
-	cMV* LtoR_ = m_analyser.GetME(0)->Field(0); // L to R
-	MV* mv = (MV*)malloc(m_height*m_width * sizeof(MV));
-	BYTE* x_me = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
-	cout << "staring filling\n";
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			mv[i*m_width + j].x = LtoR_[i*m_width + j].x;
-			mv[i*m_width + j].y = LtoR_[i*m_width + j].y;
-			mv[i*m_width + j].error = LtoR_[i*m_width + j].error;
-			x_me[i*m_width + j] = mv[i*m_width + j].x;
-		}
-	}
-
-	BYTE* estimated_depth_map = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
-	DepthEstimator depth_estimator(m_width, m_height, 0);
-	depth_estimator.Estimate(Left_Y, Left_U, Left_V, mv, estimated_depth_map);
-
-	PNG_Image::SaveArrayToPNG(estimated_depth_map, m_width, m_height, "DEPTH.png");
-
-	BYTE *depthLtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
-	BYTE *seg_map = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
-	m_analyser.L_TO_R.GetDepthMap(depthLtoR, 0);
-	int count = seg_engine.GetSegmentationMap(estimated_depth_map, seg_map);
-	log.vis_segments(seg_map, m_height, m_width, "segments_estimated.png", framenum);
-	count = seg_engine.GetSegmentationMap(depthLtoR, seg_map);
-	log.vis_segments(seg_map, m_height, m_width, "segments_just_me.png", framenum);
-
-	free(Left_Y);
-	free(Left_U);
-	free(Left_V);
-	return 0;
-	*/
 	t_Mono.ConvertToType(YUV_P);
 	m_analyser.Analyse(); // <- finds existing difference and scale
+
 	//bad result? calculate w/o transform
 	// Check() <- still zoom or bad confidence
 	if (!Check() && wasdone)
@@ -132,35 +71,16 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	}
 	//t_Mono.SaveToPNG("transformed.png");
 
-	m_Left.ConvertToType(YUV_P);
-	uint8_t *Left_Y = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
-	int16_t *Left_U = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
-	int16_t *Left_V = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
-	for (int i = 0; i < m_height; i++) {
-		for (int j = 0; j < m_width; j++) {
-			Left_Y[i*m_width + j] = m_Left.y(j, i);
-			Left_U[i*m_width + j] = m_Left.u(j, i);
-			Left_V[i*m_width + j] = m_Left.v(j, i);
-		}
+	if (two_v) {
+		two_version_comparison(framenum, results_server);
+		return 0;
 	}
-
-	BYTE* estimated_depth_map = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
-	for (int i = 0; i < m_width*m_height; i++) estimated_depth_map[i] = 0;
-
-	depth_estimator->Estimate_with_time(Left_Y, Left_U, Left_V, mv, estimated_depth_map);
-	//PNG_Image::SaveArrayToPNG(estimated_depth_map, m_width, m_height, "DEPTH.png");
-
-	del_square = FindDeletedTwoVersions(estimated_depth_map, framenum);
-
-	PostResult(framenum, results_server);
-	return 0;
 
 	ME_app = false;
 	//load new frame
-	UpdateSource(data_manager);
-	m_analyser.o_notrans = &m_Mono;
-	LOG log(true, 2, true);
-	log.print("\n", 1);
+	//m_analyser.o_notrans = &m_Mono;
+	LOG log(true, 0, true);
+	//log.print("\n", 1);
 	//only for me
 	if (ME_app) {
 		//m_analyser.prev_mono = &prev_Mono;
@@ -178,20 +98,16 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		//return 0;
 	}
 
-	//get ME vectors
-	m_analyser.MEwithoutTrans();
-	log.print("after ME");
-
 	//BYTE *q_MtoL = m_analyser.L_TO_N.Quality(1);
 	BYTE *q_LtoR = m_analyser.L_TO_R.Quality(0);
-	BYTE *q_LtoM = m_analyser.L_TO_N.Quality(0);
+	BYTE *q_LtoM = m_analyser.L_TO_M.Quality(0);
 
 
-	cMV* MtoL = m_analyser.GetME(3)->Field(1); // NtoL
-	cMV* LtoM = m_analyser.GetME(3)->Field(0); // LtoN
+	cMV* MtoL = m_analyser.GetME(1)->Field(1); // MtoL
+	cMV* LtoM = m_analyser.GetME(1)->Field(0); // LtoN
 	cMV* LtoR = m_analyser.GetME(0)->Field(0); // LtoR
 	cMV* RtoL = m_analyser.GetME(0)->Field(1); // RtoL
-	cMV* MtoR = m_analyser.GetME(4)->Field(1); // MtoR
+	cMV* MtoR = m_analyser.GetME(2)->Field(1); // MtoR
 
 	//find the left-2D-right coefficient 0 - left, 1 - right
 	double alpha = GetPosition(log, framenum);
@@ -203,12 +119,15 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		return 0;
 	}
 
+	del_square = FindDeleted(alpha, framenum);
+	return 0;
+
 	//segmentize the image                                                                   
-	log.print("starting segments");
+	//log.print("starting segments");
 	BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
 	BYTE *seg_map_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
 	m_analyser.L_TO_R.GetDepthMap(depth_LtoR, 0);
-	log.vis_grey_image(depth_LtoR, m_height, m_width, "depth.png", framenum);
+	//log.vis_grey_image(depth_LtoR, m_height, m_width, "depth.png", framenum);
 	int count_seg = seg_engine.GetSegmentationMap(depth_LtoR, seg_map_LtoR);
 	if (count_seg < 1) {
 		log.print("no objects detected", 1);
@@ -219,7 +138,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 
 
 	/*visualize segments*/ if (log.visualization) {
-		log.vis_segments(seg_map_LtoR, m_height, m_width, "segments.png", framenum);
+		//log.vis_segments(seg_map_LtoR, m_height, m_width, "segments.png", framenum);
 	}
 
 	//calculate area and depth of each segment
@@ -431,7 +350,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		bckg_coefficient = bckg.front().coef_x;
 	}
 
-	//FindDeleted(alpha, framenum);
+	del_square = FindDeleted(alpha, framenum);
 	// чем меньше тем статичнее, тем больше должен быть процент
 	double k = 0.4 - ((double)me_prev / 100);
 	if (k < 0) k = 0;
@@ -448,7 +367,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 }
 
 double CMonoPlugin::GetPosition(LOG log, int framenum) {
-	cMV* MtoL = m_analyser.GetME(3)->Field(1); // NtoL
+	cMV* MtoL = m_analyser.GetME(3)->Field(1); // MtoL
 	cMV* LtoM = m_analyser.GetME(3)->Field(0); // LtoN
 	cMV* LtoR = m_analyser.GetME(0)->Field(0); // LtoR
 	cMV* RtoL = m_analyser.GetME(0)->Field(1); // RtoL
@@ -503,7 +422,7 @@ int CMonoPlugin::GetCenter(BYTE *image, int ind, double alpha, int dir, LOG log,
 	BYTE *q_LtoR = m_analyser.L_TO_R.Quality(0);
 	BYTE *q_LtoM = m_analyser.L_TO_N.Quality(0);
 
-	cMV* MtoL = m_analyser.GetME(3)->Field(1); // NtoL
+	cMV* MtoL = m_analyser.GetME(3)->Field(1); // MtoL
 	cMV* LtoM = m_analyser.GetME(3)->Field(0); // LtoN
 	cMV* LtoR = m_analyser.GetME(0)->Field(0); // LtoR
 	cMV* RtoL = m_analyser.GetME(0)->Field(1); // RtoL
@@ -578,7 +497,7 @@ double CMonoPlugin::GetCoef(BYTE *image, double alpha, int ind, int center, int 
 	BYTE *q_LtoR = m_analyser.L_TO_R.Quality(0);
 	BYTE *q_LtoM = m_analyser.L_TO_N.Quality(0);
 
-	cMV* MtoL = m_analyser.GetME(3)->Field(1); // NtoL
+	cMV* MtoL = m_analyser.GetME(3)->Field(1); // MtoL
 	cMV* LtoM = m_analyser.GetME(3)->Field(0);
 	cMV* LtoR = m_analyser.GetME(0)->Field(0); // LtoR
 	cMV *MtoR = m_analyser.GetME(2)->Field(1); // LtoR
@@ -824,3 +743,44 @@ bool cmp(pair<int, int> a, pair<int, int> b)
 
 
 */
+
+void CMonoPlugin::two_version_comparison(int framenum, IResultsServer* results_server) {
+	m_analyser.prev_left = &prev_Left;
+	m_analyser.MEonlyMono();
+
+	cMV* MtoPREV = m_analyser.GetME(5)->Field(0);
+	MV* mv = (MV*)malloc(m_height*m_width * sizeof(MV));
+	BYTE* x_me = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
+	for (int i = 0; i < m_height; i++) {
+		for (int j = 0; j < m_width; j++) {
+			mv[i*m_width + j].x = MtoPREV[i*m_width + j].x;
+			mv[i*m_width + j].y = MtoPREV[i*m_width + j].y;
+			mv[i*m_width + j].error = MtoPREV[i*m_width + j].error;
+			x_me[i*m_width + j] = mv[i*m_width + j].x;
+		}
+	}
+
+	m_Left.ConvertToType(YUV_P);
+	uint8_t *Left_Y = (uint8_t*)malloc(m_height*m_width * sizeof(uint8_t));
+	int16_t *Left_U = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
+	int16_t *Left_V = (int16_t*)malloc(m_height*m_width * sizeof(int16_t));
+	for (int i = 0; i < m_height; i++) {
+		for (int j = 0; j < m_width; j++) {
+			Left_Y[i*m_width + j] = m_Left.y(j, i);
+			Left_U[i*m_width + j] = m_Left.u(j, i);
+			Left_V[i*m_width + j] = m_Left.v(j, i);
+		}
+	}
+
+	BYTE* estimated_depth_map = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+	for (int i = 0; i < m_width*m_height; i++) estimated_depth_map[i] = 0;
+
+	depth_estimator->Estimate_with_time(Left_Y, Left_U, Left_V, mv, estimated_depth_map);
+	//PNG_Image::SaveArrayToPNG(estimated_depth_map, m_width, m_height, "DEPTH.png");
+
+	del_square = FindDeletedTwoVersions(estimated_depth_map, framenum);
+
+	PostResult(framenum, results_server);
+
+	return;
+}

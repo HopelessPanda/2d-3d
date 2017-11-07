@@ -96,6 +96,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories>$(SolutionDir)../../../thirdparty/opencv/include;$(SolutionDir)..\..\..\thirdparty;$(SolutionDir)..\..;$(SolutionDir)\StereoAnalyser;$(SolutionDir)../../../thirdparty/VideoVGCLib\depth_from_me\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -163,7 +164,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\disparity_estimator\basic_estimator.cpp" />
     <ClCompile Include="..\..\cMEstimation.c" />
     <ClCompile Include="..\..\cMV.c" />
     <ClCompile Include="..\..\cProposedME.c" />

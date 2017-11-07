@@ -27,8 +27,8 @@ public:
     template<typename T> void print_arr(string txt, T *n, int length, int mode = 2);
     void print_byte_array(BYTE *arr, int height, int width, int mode = 2);
 
-    void vis_segments(BYTE* dst_segmentation_map, int height, int width, string name, int framenum); // save image with normalization
-    void vis_grey_image(BYTE *data, int height, int width, string name, int framenum = -1);  // (full name).png | framenumber_(m|l|r|smth).png
+    void vis_normalized(BYTE* dst_segmentation_map, int height, int width, string name, int framenum, double newMin = 0, double newMax = 255); // save image with normalization
+    void vis_grey_image(BYTE *data, int height, int width, string name, int framenum = -1);  // (full name).png | framenum_(m|l|r|smth).png
     void vis_color_image(BYTE *data, int height, int width, string name); // not done
 };
 

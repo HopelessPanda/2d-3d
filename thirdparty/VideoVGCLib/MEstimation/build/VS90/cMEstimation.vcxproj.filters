@@ -38,9 +38,6 @@
     <ClCompile Include="..\..\cMV.c">
       <Filter>AdditionalTypes</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\disparity_estimator\basic_estimator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cGetError.h">
