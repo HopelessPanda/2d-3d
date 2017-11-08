@@ -8,6 +8,7 @@
 #include "log.h"
 #include "depth_estimator.hpp"
 
+
 #define TR_C 0.01*255
 
 #define ABMIN(a,b) (((abs(a)) < (abs(b))) ? (a) : (b))
@@ -50,7 +51,7 @@ class CMonoPlugin: virtual public CCustomMetric {
         void MultiPosAnalysis();
 
         PNG_Image m_Left, m_Right, m_Mono, m_Mono_BGR, t_Mono, m_Input;
-        PNG_Image prev_Left;
+		PNG_Image prev_Left, prev_Right, prev_Mono;
         int m_width, m_height;
         bool ME_app;
 
@@ -77,8 +78,9 @@ class CMonoPlugin: virtual public CCustomMetric {
         int Brightness_Color_check(PNG_Image*, PNG_Image*);
         bool FitBrightness(PNG_Image mono, PNG_Image left);
         void Segmentize(BYTE* mask, double alpha, int id);
-        double FindDeleted(double alpha, int framenum);
-		bool color_check(PNG_Image * a, PNG_Image * b, const int i, const int j, int x = 0);
+        double FindDeleted(double alpha, BYTE* depth_map, int framenum);
+		bool color_check(PNG_Image * a, PNG_Image * b, const int i, const int j, int x = 0, int y = 0);
+		bool depth_check(BYTE* LtoR, BYTE* MtoL, BYTE* MtoR, const int i, const int j, int x = 0, int y = 0);
 		double FindDeletedTwoVersions(BYTE* depth_map, int framenum);
 		void two_version_comparison(int framenum, IResultsServer* results_server);
         

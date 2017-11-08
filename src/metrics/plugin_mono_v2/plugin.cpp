@@ -30,8 +30,15 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 {
 	//load new frame
 	ME_app = false;
+	LOG log(true, 0, true);
 	bool two_v = false;
 	UpdateSource(data_manager);
+	log.vis_grey_image(prev_Left.GetData(), m_height, m_width, "prev_left.png", framenum);
+	log.vis_grey_image(prev_Mono.GetData(), m_height, m_width, "prev_mono.png", framenum);
+	log.vis_grey_image(prev_Right.GetData(), m_height, m_width, "prev_right.png", framenum);
+	m_analyser.o_prev_left = &prev_Left;
+	m_analyser.o_prev_right = &prev_Right;
+	m_analyser.o_prev_mono = &prev_Mono;
 
 	//transform mono according to prev results
 	bool wasdone = 0;
@@ -70,7 +77,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		cout << "multipos analysis\n";
 	}
 	//t_Mono.SaveToPNG("transformed.png");
-
+	m_Mono = t_Mono;
 	if (two_v) {
 		two_version_comparison(framenum, results_server);
 		return 0;
@@ -79,7 +86,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	ME_app = false;
 	//load new frame
 	//m_analyser.o_notrans = &m_Mono;
-	LOG log(true, 0, true);
+
 	//log.print("\n", 1);
 	//only for me
 	if (ME_app) {
@@ -118,8 +125,23 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		PostResult(framenum, results_server);
 		return 0;
 	}
+	log.vis_grey_image(m_Left.GetData(), m_height, m_width, "m_left.png", framenum);
+	log.vis_grey_image(m_Mono.GetData(), m_height, m_width, "m_mono.png", framenum);
+	log.vis_grey_image(m_Right.GetData(), m_height, m_width, "m_right.png", framenum);
 
-	del_square = FindDeleted(alpha, framenum);
+	BYTE *depth_prev_mono = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+	m_analyser.GetME(5)->GetDepthMap(depth_prev_mono, 0);
+	log.vis_grey_image(depth_prev_mono, m_height, m_width, "depth_prev_mono.png", framenum);
+
+	BYTE *depth_prev_left = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+	m_analyser.GetME(3)->GetDepthMap(depth_prev_left, 0);
+	log.vis_grey_image(depth_prev_left, m_height, m_width, "depth_prev_left.png", framenum);
+
+	BYTE *depth_prev_right = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+	m_analyser.GetME(4)->GetDepthMap(depth_prev_right, 0);
+	log.vis_grey_image(depth_prev_right, m_height, m_width, "depth_prev_right.png", framenum);
+
+	del_square = FindDeleted(alpha, depth_prev_mono, framenum);
 	return 0;
 
 	//segmentize the image                                                                   
@@ -350,7 +372,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		bckg_coefficient = bckg.front().coef_x;
 	}
 
-	del_square = FindDeleted(alpha, framenum);
+	//del_square = FindDeleted(alpha, framenum);
 	// чем меньше тем статичнее, тем больше должен быть процент
 	double k = 0.4 - ((double)me_prev / 100);
 	if (k < 0) k = 0;
@@ -745,7 +767,7 @@ bool cmp(pair<int, int> a, pair<int, int> b)
 */
 
 void CMonoPlugin::two_version_comparison(int framenum, IResultsServer* results_server) {
-	m_analyser.prev_left = &prev_Left;
+	m_analyser.o_prev_left = &prev_Left;
 	m_analyser.MEonlyMono();
 
 	cMV* MtoPREV = m_analyser.GetME(5)->Field(0);

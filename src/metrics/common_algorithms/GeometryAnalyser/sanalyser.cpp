@@ -28,7 +28,9 @@ void StereoAnalyser::InitMono(PNG_Image * mono, bool disable_stereo)
     R_TO_M.Init(m_width, m_height, true);
     L_TO_N.Init(m_width, m_height, true);
     R_TO_N.Init(m_width, m_height, true);
-    M_TO_PREV.Init(m_width, m_height, true);
+    L_TO_PREV.Init(m_width, m_height, true);
+	R_TO_PREV.Init(m_width, m_height, true);
+	M_TO_PREV.Init(m_width, m_height, true);
     o_mono = mono;
     isMonoInit = true;
     TR_G_M.Init(GEOMETRY);
@@ -54,14 +56,15 @@ StereoAnalyser::StereoAnalyser()
     isMonoInit = false;
     m_width = m_height = 0;
     o_left = o_right = o_mono = NULL;
+	o_prev_left = o_prev_right = o_prev_mono = NULL;
     m_ssim = NULL;
 }
 #include <iostream>
 void StereoAnalyser::MEonlyMono()
 {
-    prev_left->ConvertToType(YUV_P);
+    o_prev_left->ConvertToType(YUV_P);
 	o_left->ConvertToType(YUV_P);
-    M_TO_PREV.Load(*o_left, *prev_left);
+    M_TO_PREV.Load(*o_left, *o_prev_left);
     M_TO_PREV.Process();    
     M_TO_PREV.CalcQuality();
     M_TO_PREV.FilterPairs();
@@ -94,6 +97,7 @@ void StereoAnalyser::Analyse()
         return; //we must have stereo to begin analysis
     if (isStereoInit && isMonoInit)
     {
+		std::cout << "analysing\n";
 #pragma omp parallel sections
         {
 #pragma omp section
@@ -102,9 +106,42 @@ void StereoAnalyser::Analyse()
         o_right->ConvertToType(YUV_P);
 #pragma omp section
         o_mono->ConvertToType(YUV_P);
+#pragma omp section
+		std::cout << "prev_L\n";
+		o_prev_left->ConvertToType(YUV_P);
+#pragma omp section
+		std::cout << "prev_L\n";
+		o_prev_mono->ConvertToType(YUV_P);
+#pragma omp section
+		std::cout << "prev_L\n";
+		o_prev_right->ConvertToType(YUV_P);
         }
 #pragma omp parallel sections
         {
+#pragma omp section //prepare prev_L ME data
+			{
+				std::cout << "prev_L\n";
+				L_TO_PREV.Load(*o_left, *o_prev_left);
+				L_TO_PREV.Process();
+				L_TO_PREV.CalcQuality();
+				L_TO_PREV.FilterPairs();
+			}
+#pragma omp section //prepare prev_R ME data
+			{
+				std::cout << "prev_R\n";
+				R_TO_PREV.Load(*o_right, *o_prev_right);
+				R_TO_PREV.Process();
+				R_TO_PREV.CalcQuality();
+				R_TO_PREV.FilterPairs();
+			}
+#pragma omp section //prepare prev_M ME data
+			{
+				std::cout << "prev_M\n";
+				M_TO_PREV.Load(*o_mono, *o_prev_mono);
+				M_TO_PREV.Process();
+				M_TO_PREV.CalcQuality();
+				M_TO_PREV.FilterPairs();
+			}
 #pragma omp section //prepare LR ME data
             {
                 L_TO_R.Load(*o_left, *o_right);
@@ -234,8 +271,8 @@ ME_Instance *  StereoAnalyser::GetME(int t)
     case (1) : source = &L_TO_M;    break;
     case (2) : source = &R_TO_M;    break;
 
-    case (3) : source = &L_TO_N;    break;
-    case (4) : source = &R_TO_N;    break;
+    case (3) : source = &L_TO_PREV;    break;
+    case (4) : source = &R_TO_PREV;    break;
     case (5) : source = &M_TO_PREV; break;
 
     }

@@ -112,6 +112,8 @@ void CMonoPlugin::UpdateSource(IDataServer* data)
     ExtractLeftView(data, m_Input.GetData());
     //left view contains stacked left and right stereo views
 	prev_Left = m_Left;
+	prev_Right = m_Right;
+	prev_Mono = m_Mono;
     m_Left = m_Input;
     m_Left.Crop(0, 0, m_w - m_width, 0);
     m_Right = m_Input;
@@ -134,6 +136,10 @@ void CMonoPlugin::UpdateSource(IDataServer* data)
         m_Mono_BGR.ConvertToType(BGR_I);
 #pragma omp section
 		prev_Left.ConvertToType(YUV_P);
+#pragma omp section
+		prev_Right.ConvertToType(YUV_P);
+#pragma omp section
+		prev_Mono.ConvertToType(YUV_P);
     }
 }
 
