@@ -36,13 +36,13 @@
     <ClInclude Include="log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\mv.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,16 +64,7 @@
     <ClCompile Include="Depth_map_segmentation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="brightness.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ColorCheck.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="deep_analysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="im_vis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
@@ -88,10 +79,13 @@
     <ClCompile Include="plugin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.cpp">
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.cpp">
+    <ClCompile Include="Useful_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

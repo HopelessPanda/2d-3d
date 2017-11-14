@@ -13,18 +13,28 @@
 #include "depth_estimator.hpp"
 #include "mv.hpp"
 
+BYTE FIND_BAD_ME_MAP(BYTE* xL, BYTE* xR, BYTE* yL, BYTE* yR, long* lERROR, long* rERROR, int index, int MAX_ERROR); 
+
 #define CONF_THSH 0.2
+#define ME_LENGTH 6
 #define CNTH 5         // threshold for center difference
 double accuracy = 5;
 using namespace std;
 using namespace cv;
-
 enum direction { x = 0, y = 1 };
 
 bool comp_coef(Object a, Object b) {
 	return a.coef_x > b.coef_x;
 }
 bool comp_double(pair<double, double> a, pair<double, double> b);
+
+byte * matToBytes(cv::Mat image)
+{
+    int size = image.total() * image.elemSize();
+    byte * bytes = new byte[size];  // you will have to delete[] that later
+    std::memcpy(bytes, image.data, size * sizeof(byte));
+    return bytes;
+}
 
 int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data_manager, IResultsServer* results_server, IVisualizationServer* vis_server)
 {
@@ -33,9 +43,9 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	LOG log(true, 0, true);
 	bool two_v = false;
 	UpdateSource(data_manager);
-	log.vis_grey_image(prev_Left.GetData(), m_height, m_width, "prev_left.png", framenum);
-	log.vis_grey_image(prev_Mono.GetData(), m_height, m_width, "prev_mono.png", framenum);
-	log.vis_grey_image(prev_Right.GetData(), m_height, m_width, "prev_right.png", framenum);
+	//log.vis_grey_image(prev_Left.GetData(), m_height, m_width, "prev_left.png", framenum);
+	//log.vis_grey_image(prev_Mono.GetData(), m_height, m_width, "prev_mono.png", framenum);
+	//log.vis_grey_image(prev_Right.GetData(), m_height, m_width, "prev_right.png", framenum);
 	m_analyser.o_prev_left = &prev_Left;
 	m_analyser.o_prev_right = &prev_Right;
 	m_analyser.o_prev_mono = &prev_Mono;
@@ -108,13 +118,110 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	//BYTE *q_MtoL = m_analyser.L_TO_N.Quality(1);
 	BYTE *q_LtoR = m_analyser.L_TO_R.Quality(0);
 	BYTE *q_LtoM = m_analyser.L_TO_M.Quality(0);
+    BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
 
 
-	cMV* MtoL = m_analyser.GetME(1)->Field(1); // MtoL
-	cMV* LtoM = m_analyser.GetME(1)->Field(0); // LtoN
-	cMV* LtoR = m_analyser.GetME(0)->Field(0); // LtoR
-	cMV* RtoL = m_analyser.GetME(0)->Field(1); // RtoL
-	cMV* MtoR = m_analyser.GetME(2)->Field(1); // MtoR
+	cMV* me_MtoL = m_analyser.GetME(1)->Field(1); // MtoL
+	cMV* me_LtoM = m_analyser.GetME(1)->Field(0); // LtoN
+	cMV* me_LtoR = m_analyser.GetME(0)->Field(0); // LtoR
+	cMV* me_RtoL = m_analyser.GetME(0)->Field(1); // RtoL
+	cMV* me_MtoR = m_analyser.GetME(2)->Field(1); // MtoR
+    cMV* me_RtoM = m_analyser.GetME(2)->Field(0); // MtoR
+
+    //___________NEW____________
+    if (false) {
+
+        BYTE* map_y = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        long* map_error_MtoL = (long*)malloc(m_height*m_width * sizeof(long));
+        long* map_error_MtoR = (long*)malloc(m_height*m_width * sizeof(long));
+        BYTE* map_x_MtoL = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_x_MtoR = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_y_MtoL = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_y_MtoR = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_tmp_edges = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_tmp_obj = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_x_compensated_L = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_x_compensated_R = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_y_compensated_L = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_y_compensated_R = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE *depth_MtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
+        m_analyser.R_TO_M.GetDepthMap(depth_MtoR, 1);
+        BYTE *depth_MtoL = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
+        m_analyser.L_TO_M.GetDepthMap(depth_MtoL, 1);
+        BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
+        m_analyser.L_TO_R.GetDepthMap(depth_LtoR, 1);
+        BYTE* map_change_depth = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        BYTE* map_change_final = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+
+        int MAX_ERROR = 0;
+        int MIN_ERROR = LONG_MAX;
+
+        for (int i = 0; i < m_height; i++) {
+            for (int j = 0; j < m_width; j++) {
+                int index = i*m_width + j;
+                // visualize x components of ME vectors from mono to left and right
+                map_x_MtoL[index] = abs(me_MtoL[index].x);
+                map_x_MtoR[index] = abs(me_MtoR[index].x);
+                map_y_MtoL[index] = abs(me_MtoL[index].y);
+                map_y_MtoR[index] = abs(me_MtoR[index].y);
+                map_x_compensated_L[index] = abs(map_x_MtoL[index] - abs(me_LtoM[index].x));
+                map_x_compensated_R[index] = abs(map_x_MtoR[index] - abs(me_RtoM[index].x));
+                map_y_compensated_L[index] = abs(abs(me_MtoL[index].y) - abs(me_LtoM[index].y));
+                map_y_compensated_R[index] = abs(abs(me_MtoR[index].y) - abs(me_RtoM[index].y));
+
+                map_error_MtoL[index] = abs(me_MtoL[index].error);
+                map_error_MtoR[index] = abs(me_MtoR[index].error);
+                if (map_error_MtoL[index] < MIN_ERROR) MIN_ERROR = map_error_MtoR[index];
+                if (map_error_MtoR[index] > MAX_ERROR) MAX_ERROR = map_error_MtoR[index];
+            }
+        }
+        //log.vis_normalized(map_x_MtoR, m_height, m_width, "x_vector_MtoR.png", framenum);
+        //log.vis_normalized(map_x_MtoL, m_height, m_width, "x_vector_MtoL.png", framenum);
+        //log.vis_normalized(map_y_MtoL, m_height, m_width, "y_vector_MtoL.png", framenum);
+        //log.vis_normalized(map_y_MtoR, m_height, m_width, "y_vector_MtoR.png", framenum);
+        //log.vis_normalized(map_x_compensated_L, m_height, m_width, "x_vector_compensated_L.png", framenum);
+        //log.vis_normalized(map_x_compensated_R, m_height, m_width, "x_vector_compensated_R.png", framenum);
+        //log.vis_normalized(map_y_compensated_L, m_height, m_width, "y_vector_compensated_L.png", framenum);
+        //log.vis_normalized(map_y_compensated_R, m_height, m_width, "y_vector_compensated_R.png", framenum);
+        log.vis_normalized(depth_LtoR, m_height, m_width, "depth_LtoR.png", framenum);
+
+        // find pixels that have very large x and y ME vectors
+        // and very large errors
+        // (compensated: LtoM - MtoL, this should give 0 in case of good matching)
+
+        BYTE* map_change = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        for (int i = 0; i < m_height; i++) {
+            for (int j = 0; j < m_width; j++) {
+                int index = i*m_width + j;
+                map_change[index] = FIND_BAD_ME_MAP(map_x_compensated_L, map_x_compensated_R, map_y_compensated_L, map_y_compensated_R,
+                    map_error_MtoL, map_error_MtoR, index, MAX_ERROR);
+            }
+        }
+        log.vis_grey_image(map_change, m_height, m_width, "change_map_me.png", framenum);
+
+
+
+        cv::Mat depth_mat(m_height, m_width, CV_8UC1, depth_LtoR);
+        cv::Mat blured_depth_mat;
+        cv::GaussianBlur(depth_mat, blured_depth_mat, cv::Size(7, 7), 2, 2);
+        BYTE *blured_depth_byte = matToBytes(blured_depth_mat);
+        PNG_Image::SaveArrayToPNG(blured_depth_byte, m_width, m_height, "blured_depth.png");
+
+        cv::Mat canny_edges;
+        cv::Canny(blured_depth_mat, canny_edges, 100, 200, 3);
+
+
+        BYTE *canny_byte = matToBytes(canny_edges);
+        PNG_Image::SaveArrayToPNG(canny_byte, m_width, m_height, "canny_edges.png");
+        cout << "done canny\n";
+        //cv::imshow("canny", canny_edges);
+        cv::waitKey(0);
+        return 0;
+    }
+
+
+    //__________________________
+    
 
 	//find the left-2D-right coefficient 0 - left, 1 - right
 	double alpha = GetPosition(log, framenum);
@@ -125,28 +232,25 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 		PostResult(framenum, results_server);
 		return 0;
 	}
-	log.vis_grey_image(m_Left.GetData(), m_height, m_width, "m_left.png", framenum);
-	log.vis_grey_image(m_Mono.GetData(), m_height, m_width, "m_mono.png", framenum);
-	log.vis_grey_image(m_Right.GetData(), m_height, m_width, "m_right.png", framenum);
-
+	
 	BYTE *depth_prev_mono = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
 	m_analyser.GetME(5)->GetDepthMap(depth_prev_mono, 0);
-	log.vis_grey_image(depth_prev_mono, m_height, m_width, "depth_prev_mono.png", framenum);
+	//log.vis_grey_image(depth_prev_mono, m_height, m_width, "depth_prev_mono.png", framenum);
 
 	BYTE *depth_prev_left = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
 	m_analyser.GetME(3)->GetDepthMap(depth_prev_left, 0);
-	log.vis_grey_image(depth_prev_left, m_height, m_width, "depth_prev_left.png", framenum);
+	//log.vis_grey_image(depth_prev_left, m_height, m_width, "depth_prev_left.png", framenum);
 
 	BYTE *depth_prev_right = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
 	m_analyser.GetME(4)->GetDepthMap(depth_prev_right, 0);
-	log.vis_grey_image(depth_prev_right, m_height, m_width, "depth_prev_right.png", framenum);
+	//log.vis_grey_image(depth_prev_right, m_height, m_width, "depth_prev_right.png", framenum);
 
 	del_square = FindDeleted(alpha, depth_prev_mono, framenum);
 	return 0;
 
 	//segmentize the image                                                                   
 	//log.print("starting segments");
-	BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
+	
 	BYTE *seg_map_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
 	m_analyser.L_TO_R.GetDepthMap(depth_LtoR, 0);
 	//log.vis_grey_image(depth_LtoR, m_height, m_width, "depth.png", framenum);
@@ -261,7 +365,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 				int index = i*m_width + j;
 				if (seg_map_LtoR[index] != obj[k].index) continue;
 				//if (dir == direction::x) {
-				if (abs(LtoM[index].x - alpha*LtoR[index].x) <= CNTH) {
+				if (abs(me_LtoM[index].x - alpha*me_LtoR[index].x) <= CNTH) {
 					centers[j]++;
 					conf_pix_in_use[j] += (q_LtoM[index] + q_LtoR[index]);
 					total_pix_in_use[j]++;
@@ -305,7 +409,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 				int index = i*m_width + j;
 				if (seg_map_LtoR[index] != bckg[k].index) continue;
 				//if (dir == direction::x) {
-				if (abs(LtoM[index].x - alpha*LtoR[index].x) <= CNTH) {
+				if (abs(me_LtoM[index].x - alpha*me_LtoR[index].x) <= CNTH) {
 					centers[j]++;
 				}
 
@@ -805,4 +909,16 @@ void CMonoPlugin::two_version_comparison(int framenum, IResultsServer* results_s
 	PostResult(framenum, results_server);
 
 	return;
+}
+
+BYTE FIND_BAD_ME_MAP(BYTE* xL, BYTE* xR, BYTE* yL, BYTE* yR, long* lERROR, long* rERROR, int index, int MAX_ERROR) {
+    long threshold = MAX_ERROR*0.05;
+    if ((xL[index] > ME_LENGTH && lERROR[index] > threshold) ||
+        (xR[index] > ME_LENGTH && rERROR[index] > threshold))
+        return 255;
+    if ((yL[index] > ME_LENGTH && lERROR[index] > threshold) ||
+         (yR[index] > ME_LENGTH  && rERROR[index] > threshold))
+        return 255;
+
+    return 0;
 }

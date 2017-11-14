@@ -217,16 +217,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\depth_estimator.cpp" />
     <ClCompile Include="..\..\..\thirdparty\VideoVGCLib\depth_from_me\half_pixel.cpp" />
-    <ClCompile Include="brightness.cpp" />
-    <ClCompile Include="ColorCheck.cpp" />
     <ClCompile Include="deep_analysis.cpp" />
     <ClCompile Include="deleted_objects.cpp" />
     <ClCompile Include="Depth_map_segmentation.cpp" />
-    <ClCompile Include="im_vis.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="metric.cpp" />
     <ClCompile Include="middlegen.cpp" />
     <ClCompile Include="plugin.cpp" />
+    <ClCompile Include="Useful_functions.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
