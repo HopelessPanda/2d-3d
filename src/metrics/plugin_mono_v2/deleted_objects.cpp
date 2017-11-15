@@ -119,6 +119,7 @@ struct object {
     cMV common;
     vector<pair<int, int>> obj_coords;
     vector<pair<int, int>> edge_coords;
+    vector<Point> point_obj_coords;
     double area;
 };
 
@@ -226,38 +227,6 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
         map_error_MtoL, map_error_MtoR, m_height, m_width);
     log.vis_grey_image(map_change, m_height, m_width, "change_map_me.png", framenum);
 
-    cv::Mat contours_map(m_height, m_width, CV_8UC1, map_change);  
-    
-    cv::imshow("sdkjfjns", contours_map);
-    cv::waitKey(0);
-    cv::cvtColor(contours_map, contours_map, cv::COLOR_BGR2GRAY);
-    cout << "done color conversion\n";
-    std::vector<std::vector<cv::Point> > contours;
-    cout << "looking for contours\n";
-    cv::findContours(contours_map, contours, CV_RETR_TREE, CV_CHAIN_APPROX_NONE);
-    cout << "found contours\n";
-    for (auto contour = contours.begin(); contour < contours.end(); contour++) {
-        double area = cv::contourArea(*contour);
-        cout << area << endl;
-        if (area < 500) {
-            cout << "erasing\n";
-            contours.erase(contour);
-
-        }
-    }
-
-    cv::Mat drawing = Mat::zeros(contours_map.size(), CV_8UC3);
-
-    //cv::drawContours(drawing, contours, -1, cv::Scalar(0, 0, 0), 1);
-
-    cout << "filling\n";
-    cv::fillPoly(drawing, contours, cv::Scalar(0, 0, 0));
-    cout << "filled\n";
-
-    BYTE* contours_byte = matToByte(drawing);
-    log.vis_grey_image(contours_byte, m_height, m_width, "countours_filtered.png", framenum);
-    
-    return 0;
 
     // find all areas that are smaller that MIN_AREA pixels in size
     int MIN_AREA = 500;
@@ -297,6 +266,7 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
                         found_obj.edge_coords.push_back(std::make_pair(w.first, w.second - 2));
                     for (int k = w.second; k < e.second; k++) {
                         found_obj.obj_coords.push_back(std::make_pair(e.first, k));
+                        found_obj.point_obj_coords.push_back(Point(e.first, k));
                         map_checked[e.first*m_width + k] = 1;
                         if (e.first - 1 > 0) {
                             if (map_change[(e.first - 1)*m_width + k] == 255 && map_checked[(e.first - 1)*m_width + k] == 0) q.push(std::make_pair(e.first - 1, k));
@@ -374,7 +344,7 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
 
     // compute depth of edge pixels
     // if there's a big difference it's probably an occlusion
-    for (int i = 0; i < all.size(); i++) {
+    /*for (int i = 0; i < all.size(); i++) {
         vector<int> depths;
 
 
@@ -397,7 +367,7 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
         }
     }
     //log.vis_grey_image(map_tmp, m_height, m_width, "change_map_tmp.png", framenum);
-    if (all.size() == 0) return 0;
+    if (all.size() == 0) return 0;      */
 
     // find the most common ME vector in edges of the object
     // using that vector find color difference inside the suspected object
@@ -545,12 +515,13 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
         if (outliers / (double)widths.size() > 0.01) all.erase(all.begin() + i);
 
     }*/
+    BYTE* change_map = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+    for (int i = 0; i < m_height*m_width; i++) change_map[i] = 0;
 
     // make changemap
     int x = 0, y = 0;
     double square = 0;
-    BYTE* change_map = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
-    for (int i = 0; i < m_height*m_width; i++) change_map[i] = 0;
+    
     for (int k = 0; k < all.size(); k++) {
         for (auto it = all[k].obj_coords.begin(); it < all[k].obj_coords.end(); it++) {
             change_map[it->first*m_width + it->second] = 255;

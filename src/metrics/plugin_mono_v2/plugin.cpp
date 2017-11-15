@@ -118,7 +118,6 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
 	//BYTE *q_MtoL = m_analyser.L_TO_N.Quality(1);
 	BYTE *q_LtoR = m_analyser.L_TO_R.Quality(0);
 	BYTE *q_LtoM = m_analyser.L_TO_M.Quality(0);
-    BYTE *depth_LtoR = (BYTE*)malloc(m_width*m_height * sizeof(BYTE));
 
 
 	cMV* me_MtoL = m_analyser.GetME(1)->Field(1); // MtoL
@@ -129,7 +128,7 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
     cMV* me_RtoM = m_analyser.GetME(2)->Field(0); // MtoR
 
     //___________NEW____________
-    if (false) {
+
 
         BYTE* map_y = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
         long* map_error_MtoL = (long*)malloc(m_height*m_width * sizeof(long));
@@ -199,7 +198,25 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
         }
         log.vis_grey_image(map_change, m_height, m_width, "change_map_me.png", framenum);
 
+        //find the left-2D-right coefficient 0 - left, 1 - right
+        double alpha = GetPosition(log, framenum);
+        log.print("left-2D-right coefficient", alpha, 1);
+        if (alpha > 1 || alpha < 0) {
+            log.print("bad alpha", alpha, 1);
+            PostResult(framenum, results_server);
+            return 0;
+        }
 
+        BYTE* map_left_alpha = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
+        for (int i = 0; i < m_height; i++) {
+            for (int j = 0; j < m_width; j++) {
+                int index = i*m_width + j;
+                map_left_alpha[index] = abs(me_LtoM[index].x - alpha*me_LtoR[index].x);
+            }
+        }
+        log.vis_grey_image(map_left_alpha, m_height, m_width, "left_alpha.png", framenum);
+
+        return 0;
 
         cv::Mat depth_mat(m_height, m_width, CV_8UC1, depth_LtoR);
         cv::Mat blured_depth_mat;
@@ -217,21 +234,12 @@ int CMonoPlugin::Measure(int framenum, CLinkedAnchor& request, IDataServer* data
         //cv::imshow("canny", canny_edges);
         cv::waitKey(0);
         return 0;
-    }
+
 
 
     //__________________________
     
 
-	//find the left-2D-right coefficient 0 - left, 1 - right
-	double alpha = GetPosition(log, framenum);
-
-	log.print("left-2D-right coefficient", alpha, 1);
-	if (alpha > 1 || alpha < 0) {
-		log.print("bad alpha", alpha, 1);
-		PostResult(framenum, results_server);
-		return 0;
-	}
 	
 	BYTE *depth_prev_mono = (BYTE*)malloc(m_height*m_width * sizeof(BYTE));
 	m_analyser.GetME(5)->GetDepthMap(depth_prev_mono, 0);
