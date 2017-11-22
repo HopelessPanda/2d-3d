@@ -521,7 +521,7 @@ double CMonoPlugin::FindDeleted(double alpha, BYTE* depth_map, int framenum)
     // make changemap
     int x = 0, y = 0;
     double square = 0;
-    
+
     for (int k = 0; k < all.size(); k++) {
         for (auto it = all[k].obj_coords.begin(); it < all[k].obj_coords.end(); it++) {
             change_map[it->first*m_width + it->second] = 255;
@@ -550,6 +550,7 @@ bool comp_hor_cur(pair<int, int> a, pair<int, int> b)
 }
 
 double CMonoPlugin::FindDeletedTwoVersions(BYTE* depth_map, int framenum) {
+    cout << "starting deleted 2versions\n";
     int sum = 0;
     for (int i = 0; i < m_width*m_height; i++) sum += depth_map[i];
     if (sum == 0) { cout << "no depth\n"; return 0; }
@@ -710,7 +711,13 @@ double CMonoPlugin::FindDeletedTwoVersions(BYTE* depth_map, int framenum) {
             square += 1;
         }
     }
-    //PNG_Image::SaveArrayToPNG(change_map, m_width, m_height, "change_map.png");
+    //LOG log(true, 2, true);
+    //log.vis_grey_image(change_map, m_height, m_width, "change_map.png", framenum);
+
+    free(change_map);
+    free(map_checked);
+
+
     return square / (double)(m_width*m_height);
 }
 

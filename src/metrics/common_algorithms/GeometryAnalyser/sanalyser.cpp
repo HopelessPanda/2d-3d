@@ -107,20 +107,16 @@ void StereoAnalyser::Analyse()
 #pragma omp section
         o_mono->ConvertToType(YUV_P);
 #pragma omp section
-		std::cout << "prev_L\n";
 		o_prev_left->ConvertToType(YUV_P);
 #pragma omp section
-		std::cout << "prev_L\n";
 		o_prev_mono->ConvertToType(YUV_P);
 #pragma omp section
-		std::cout << "prev_L\n";
 		o_prev_right->ConvertToType(YUV_P);
         }
 #pragma omp parallel sections
         {
 #pragma omp section //prepare prev_L ME data
 			{
-				std::cout << "prev_L\n";
 				L_TO_PREV.Load(*o_left, *o_prev_left);
 				L_TO_PREV.Process();
 				L_TO_PREV.CalcQuality();
@@ -128,7 +124,6 @@ void StereoAnalyser::Analyse()
 			}
 #pragma omp section //prepare prev_R ME data
 			{
-				std::cout << "prev_R\n";
 				R_TO_PREV.Load(*o_right, *o_prev_right);
 				R_TO_PREV.Process();
 				R_TO_PREV.CalcQuality();
@@ -136,7 +131,6 @@ void StereoAnalyser::Analyse()
 			}
 #pragma omp section //prepare prev_M ME data
 			{
-				std::cout << "prev_M\n";
 				M_TO_PREV.Load(*o_mono, *o_prev_mono);
 				M_TO_PREV.Process();
 				M_TO_PREV.CalcQuality();
